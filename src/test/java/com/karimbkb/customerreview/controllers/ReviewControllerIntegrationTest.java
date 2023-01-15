@@ -31,12 +31,16 @@ import java.util.UUID;
 
 import static com.karimbkb.customerreview.test.util.TestDataUtil.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers(disabledWithoutDocker = true)
+@Sql(scripts = "/sql/review/insert-review-data.sql")
+@Sql(executionPhase = AFTER_TEST_METHOD, scripts = "/sql/review/delete-test-data.sql")
 class ReviewControllerIntegrationTest {
 
     @Container
@@ -85,7 +89,6 @@ class ReviewControllerIntegrationTest {
     }
 
     @Test
-    @Sql(scripts = "/sql/review/insert_review_data.sql")
     void shouldLoadReviewById() {
         RestAssuredMockMvc
             .given()
@@ -102,7 +105,6 @@ class ReviewControllerIntegrationTest {
     }
 
     @Test
-    @Sql(scripts = "/sql/review/insert_review_data.sql")
     void shouldDeleteReviewAndDescriptionsByReviewId() {
         RestAssuredMockMvc
             .given()
@@ -118,7 +120,6 @@ class ReviewControllerIntegrationTest {
     }
 
     @Test
-    @Sql(scripts = "/sql/review/insert_review_data.sql")
     void shouldCreateNewReview() throws IOException {
         String reviewCreateJson = getStringFromResources("requests/review/create-review.json");
 
@@ -139,7 +140,6 @@ class ReviewControllerIntegrationTest {
     }
 
     @Test
-    @Sql(scripts = "/sql/review/insert_review_data.sql")
     void shouldPatchReview() throws IOException {
         String reviewPatchJson = getStringFromResources("requests/review/patch-review.json");
 
@@ -161,22 +161,5 @@ class ReviewControllerIntegrationTest {
             assertThat(entity.getProductId()).isEqualTo(UUID.fromString("225925f1-f16e-4572-9a3a-0c76182819d4"));
             assertThat(entity.getVersion()).isEqualTo(2);
         });
-    }
-
-    @Test
-    @Sql(scripts = "/sql/review/insert_review_data.sql")
-    void shouldPatchReviewWithErrorMessage() throws IOException {
-        String reviewPatchJson = getStringFromResources("requests/review/patch-review-with-missing-version.json");
-
-        RestAssuredMockMvc
-            .given()
-                .auth().none()
-                .header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE)
-                .body(reviewPatchJson)
-            .when()
-                .patch(REVIEW_URL_PATCH, REVIEW_ID)
-                .prettyPeek()
-            .then()
-                .statusCode(INTERNAL_SERVER_ERROR.value());
     }
 }

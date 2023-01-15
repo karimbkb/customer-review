@@ -1,22 +1,9 @@
 # customer-review-service
 >  This app is responsible for creating customer reviews
 
-[comment]: <> ([![codecov]&#40;https://codecov.io/gh/karimbkb/category-api/branch/master/graph/badge.svg?token=tprxgsRDGg&#41;]&#40;https://codecov.io/gh/karimbkb/category-api&#41;)
+[![codecov](https://codecov.io/gh/karimbkb/customer-review/branch/master/graph/badge.svg?token=IQPV5TS926)](https://codecov.io/gh/karimbkb/customer-review)
 
-[comment]: <> ([![Build Status]&#40;https://travis-ci.com/karimbkb/category-api.svg?branch=master&#41;]&#40;https://travis-ci.com/karimbkb/category-api&#41;)
-
-[comment]: <> ([![Maintainability Rating]&#40;https://sonarcloud.io/api/project_badges/measure?project=karimbkb_category-api&metric=sqale_rating&#41;]&#40;https://sonarcloud.io/dashboard?id=karimbkb_category-api&#41;)
-
-[comment]: <> ([![Duplicated Lines &#40;%&#41;]&#40;https://sonarcloud.io/api/project_badges/measure?project=karimbkb_category-api&metric=duplicated_lines_density&#41;]&#40;https://sonarcloud.io/dashboard?id=karimbkb_category-api&#41;)
-
-[comment]: <> ([![Security Rating]&#40;https://sonarcloud.io/api/project_badges/measure?project=karimbkb_category-api&metric=security_rating&#41;]&#40;https://sonarcloud.io/dashboard?id=karimbkb_category-api&#41;)
-
-[comment]: <> ([![Vulnerabilities]&#40;https://sonarcloud.io/api/project_badges/measure?project=karimbkb_category-api&metric=vulnerabilities&#41;]&#40;https://sonarcloud.io/dashboard?id=karimbkb_category-api&#41;)
-
-[comment]: <> ([![Bugs]&#40;https://sonarcloud.io/api/project_badges/measure?project=karimbkb_category-api&metric=bugs&#41;]&#40;https://sonarcloud.io/dashboard?id=karimbkb_category-api&#41;)
-
-[comment]: <> ([![made-with-Micronaut]&#40;https://img.shields.io/badge/Micronaut-2.3.1-1f425f.svg&#41;]&#40;https://micronaut.io/&#41;)
-
+[![Build Status](https://app.travis-ci.com/karimbkb/customer-review.svg?branch=master)](https://app.travis-ci.com/karimbkb/customer-review)
 
 ## Contents
 
@@ -45,6 +32,7 @@ Start the application via you IDE or run the jar file and you can access the api
 - Gradle 7.1
 - JUnit 5
 - Spring Boot 2.5
+- TestContainers
 - JUnit
 - Consul
 

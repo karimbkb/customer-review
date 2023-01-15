@@ -1,33 +1,39 @@
-package com.karimbkb.customerreview.models;
+package com.karimbkb.customerreview.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.karimbkb.customerreview.service.VerifyVersionReviewDescription;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(VerifyVersionReviewDescription.class)
+@Table(name = "review_description", schema = "customer_review")
 @Entity(name = "review_description")
-public class ReviewDescription {
+public class ReviewDescription implements Serializable {
     public enum StatusEnum {approved, pending, rejected};
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long reviewDescriptionId;
+    private UUID id;
 
-    private long reviewId;
-    private int customerId;
+    private UUID reviewId;
+    private UUID customerId;
     private String title;
     private String description;
     private String firstName;
     private String lastName;
-    private int rating;
+    private Integer rating;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -39,10 +45,5 @@ public class ReviewDescription {
     private StatusEnum status;
 
     @Version
-    private int version;
-
-    @ManyToOne
-    @JsonIgnore
-    @JoinColumn(name="reviewId", insertable = false, updatable = false)
-    private Review review;
+    private Integer version;
 }

@@ -1,0 +1,12 @@
+[
+  {
+    "op": "replace",
+    "path": "/customerId",
+    "value": "c3d49655-063c-40c8-9dc3-d75fbb3c75db"
+  },
+  {
+    "op": "replace",
+    "path": "/firstName",
+    "value": "Max"
+  }
+]

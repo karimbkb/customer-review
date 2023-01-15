@@ -1,4 +1,4 @@
-# Review Api
+# customer-review-service
 >  This app is responsible for creating customer reviews
 
 [comment]: <> ([![codecov]&#40;https://codecov.io/gh/karimbkb/category-api/branch/master/graph/badge.svg?token=tprxgsRDGg&#41;]&#40;https://codecov.io/gh/karimbkb/category-api&#41;)
@@ -26,7 +26,6 @@
 - [Swagger](#swagger)
 - [Unit Tests](#unit-tests)
 - [Code Coverage](#code-coverage)
-- [Coding Style](#coding-style)
 - [Static Code Analyzer](#static-code-analyzer)
 
 ## Setup
@@ -34,48 +33,33 @@
 Go into the root directory of the application and run
 
 ```
-docker-compose up -d --build
+cd customer-review-service
+./dev/setup.sh
 ```
 
-After that the api can be called via `http://localhost:8080/`
+Start the application via you IDE or run the jar file and you can access the api at  `http://localhost:8080/`
 
 ## Dependencies
 
 - Java 11
 - Gradle 7.1
 - JUnit 5
-- Micronaut
-- Testcontainers
+- Spring Boot 2.5
+- JUnit
 - Consul
-- Keycloak/Spring Cloud Security
-- Swagger
 
 ## Endpoints
 
-| Action                       | Endpoint                                                             | Type    | Example                                                                               | Payload                         |
-|------------------------------|----------------------------------------------------------------------|---------|---------------------------------------------------------------------------------------|---------------------------------|
-| Fetch a category         | `/v1/category/{path}`                         | `GET`   | `/v1/category/bottom-up`             | -                               |
-| Remove a category | `/v1/category/{id}`                              | `DELETE`| `/v1/category/3f19324a-39dc-41f4-b88b-b05ff2c38c5a`                   | -      |
-| Create a category     | `/v1/category/`                               | `POST`  | `/v1/category`                   | `{"name": "Bottom up", "path": "bottom-up"}`      |
-| Update a category     | `/v1/category/{id}`                               | `PUT`  | `/v1/category/3f19324a-39dc-41f4-b88b-b05ff2c38c5a`                   | `{"name": "Bottom up", "path": "bottom-up"}`      |
+| Action            | Endpoint                                                            | Type     | Example                                                                       | Payload                                   |
+|-------------------|---------------------------------------------------------------------|----------|-------------------------------------------------------------------------------|-------------------------------------------|
+| Get a review      | `/api/v1/review/{id}`                         | `GET`    | `/api/v1/review/08915530-12d5-4d4e-9edf-5339c523ed29`             | -                                         |
+| Remove a review | `/api/v1/review/{id}`                              | `DELETE` | `/api/v1/review/08915530-12d5-4d4e-9edf-5339c523ed29`               | -                                         |
+| Create a review | `/api/v1/review/`                               | `POST`   | `/api/v1/review/`                | `{ "storeId": 1, "productId": "93ae5569-93c7-4e2d-8415-ad1f0254f635" }`                                  |
+| Update a review | `/api/v1/review/{id}`                               | `PATCH`  | `/v1/review/08915530-12d5-4d4e-9edf-5339c523ed29`               | `[ { "op": "replace", "path": "/storeId", "value": 4 }, { "op": "replace", "path": "/productId", "value": "225925f1-f16e-4572-9a3a-0c76182819d4" } ] ` |
 
 ## Consul
 
 Consul can be accessed locally via http://localhost:8500/
-
-## Keycloak
-
-Keycloak can be accessed locally via http://localhost:8888/
-
-User: keycloak
-Password: keycloak
-
-The configuration file for keycloak can be found here /tmp/keycloak-dump.json
-
-## Swagger
-
-- OpenAPI specs can be found here: http://localhost:8080/swagger/category-api-1.0.yml
-- Swagger UI can be accessed here: http://localhost:8080/swagger-ui
 
 ## Unit Tests
 
@@ -99,22 +83,6 @@ To create a code coverage report run this command:
 
 ```
 ./gradlew jacocoTestReport
-```
-
-## Coding Style
-
-Coding style is based on the Google Java Format.
-
-To verify if all java files are formatted right:
-
-```
-./gradlew verGJF
-```
-
-To format all java files:
-
-```
-./gradlew goJF
 ```
 
 ## Static Code Analyzer

@@ -1,12 +1,20 @@
 package com.karimbkb.customerreview.controllers;
 
-import com.karimbkb.customerreview.models.Review;
-import com.karimbkb.customerreview.models.ReviewDescription;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.karimbkb.customerreview.domain.Review;
+import com.karimbkb.customerreview.domain.ReviewDescription;
+import com.karimbkb.customerreview.dto.ReviewCreateDTO;
+import com.karimbkb.customerreview.dto.ReviewDTO;
 import com.karimbkb.customerreview.repositories.ReviewDescriptionRepository;
 import com.karimbkb.customerreview.repositories.ReviewRepository;
+import com.karimbkb.customerreview.service.ReviewDescriptionService;
 import com.karimbkb.customerreview.service.ReviewService;
+import com.karimbkb.customerreview.util.PatchUtil;
+import ma.glasnost.orika.MapperFacade;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,164 +24,179 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.mockito.Mockito.*;
+import static com.karimbkb.customerreview.test.util.TestDataUtil.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ReviewController.class)
 @Import(ReviewService.class)
-class ReviewControllerTest {
+public class ReviewControllerTest {
 
-  @MockBean private ReviewRepository reviewRepository;
+    @MockBean
+    private ReviewRepository reviewRepository;
 
-  @MockBean private ReviewDescriptionRepository reviewDescriptionRepository;
+    @MockBean
+    private ReviewDescriptionRepository reviewDescriptionRepository;
 
-  @Autowired
-  private ReviewService reviewService;
+    @MockBean
+    private MapperFacade mapperFacade;
 
-  @Autowired private MockMvc mockMvc;
+    @MockBean
+    private ReviewDescriptionService reviewDescriptionService;
 
-  @Test
-  void getReview() throws Exception {
-    ReviewDescription reviewDescription = buildReviewDescription();
-    Review review = buildReview(reviewDescription);
+    @Autowired
+    private MockMvc mockMvc;
 
-    when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+    @Test
+    void getReview() throws Exception {
+        // given
+        Review review = buildReview();
+        ReviewDTO reviewDTO = buildReviewDTO();
 
-    mockMvc
-        .perform(get("/api/v1/reviews/1").header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON))
-        .andExpect(status().is(200))
-        .andExpect(jsonPath("$.reviewId").value(1L))
-        .andExpect(jsonPath("$.productId").value(9723))
-        .andExpect(jsonPath("$.storeId").value(3))
-        .andExpect(jsonPath("$.reviewDescriptions.size()").value(1))
-        .andExpect(jsonPath("$.reviewDescriptions[0].reviewId").value(1L))
-        .andExpect(jsonPath("$.reviewDescriptions[0].title").value("Title"))
-        .andExpect(jsonPath("$.reviewDescriptions[0].description").value("Nice book"))
-        .andExpect(jsonPath("$.reviewDescriptions[0].customerId").value(1234))
-        .andExpect(jsonPath("$.reviewDescriptions[0].createdAt").value("2021-02-06T12:45:00"))
-        .andExpect(jsonPath("$.reviewDescriptions[0].updatedAt").value("2021-02-06T12:45:00"))
-        .andExpect(jsonPath("$.reviewDescriptions[0].rating").value(4))
-        .andExpect(jsonPath("$.reviewDescriptions[0].status").value("pending"))
-        .andReturn();
-  }
+        // when
+        when(reviewRepository.findById(REVIEW_ID)).thenReturn(Optional.of(review));
+        when(mapperFacade.map(review, ReviewDTO.class)).thenReturn(reviewDTO);
 
-  @Test
-  void getReviewsWithPageAndSize() throws Exception {
-    ReviewDescription reviewDescription = buildReviewDescription();
-    Review review = buildReview(reviewDescription);
+        // then
+        mockMvc
+                .perform(get(REVIEW_URL_GET, REVIEW_ID).header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.id").value(REVIEW_ID.toString()))
+                .andExpect(jsonPath("$.productId").value(PRODUCT_ID.toString()))
+                .andExpect(jsonPath("$.storeId").value(3))
+                .andExpect(jsonPath("$.reviewDescriptions.size()").value(1))
+                .andExpect(jsonPath("$.reviewDescriptions[0].id").value(REVIEW_DESCRIPTION_ID.toString()))
+                .andExpect(jsonPath("$.reviewDescriptions[0].reviewId").value(REVIEW_ID.toString()))
+                .andExpect(jsonPath("$.reviewDescriptions[0].title").value(TITLE))
+                .andExpect(jsonPath("$.reviewDescriptions[0].description").value(DESCRIPTION))
+                .andExpect(jsonPath("$.reviewDescriptions[0].customerId").value(CUSTOMER_ID.toString()))
+                .andExpect(jsonPath("$.reviewDescriptions[0].createdAt").value("2021-02-06T12:45:00"))
+                .andExpect(jsonPath("$.reviewDescriptions[0].updatedAt").value("2021-02-06T12:45:00"))
+                .andExpect(jsonPath("$.reviewDescriptions[0].rating").value(RATING))
+                .andExpect(jsonPath("$.reviewDescriptions[0].status").value("pending"))
+                .andReturn();
+    }
 
-    Page<Review> reviews = new PageImpl<>(List.of(review), PageRequest.of(0, 20), 20);
-    when(reviewRepository.findAll(PageRequest.of(0, 20))).thenReturn(reviews);
+    @Test
+    void getReviewsWithPageAndSize() throws Exception {
+        // given
+        Review review = buildReview();
+        ReviewDTO reviewDTO = buildReviewDTO();
+        Page<Review> reviews = new PageImpl<>(List.of(review), PageRequest.of(0, 20), 20);
 
-    mockMvc
-        .perform(
-            get("/api/v1/reviews")
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-                .param("page", "0")
-                .param("size", "20"))
-        .andExpect(status().is(200))
-        .andExpect(jsonPath("$.content.size()").value(1))
-        .andExpect(jsonPath("$.content[0].reviewId").value(1L))
-        .andExpect(jsonPath("$.content[0].productId").value(9723))
-        .andExpect(jsonPath("$.content[0].storeId").value(3))
-        .andExpect(jsonPath("$.content[0].reviewDescriptions.size()").value(1))
-        .andExpect(jsonPath("$.content[0].reviewDescriptions[0].reviewId").value(1L))
-        .andExpect(jsonPath("$.content[0].reviewDescriptions[0].title").value("Title"))
-        .andExpect(jsonPath("$.content[0].reviewDescriptions[0].description").value("Nice book"))
-        .andExpect(jsonPath("$.content[0].reviewDescriptions[0].customerId").value(1234))
-        .andExpect(
-            jsonPath("$.content[0].reviewDescriptions[0].createdAt").value("2021-02-06T12:45:00"))
-        .andExpect(
-            jsonPath("$.content[0].reviewDescriptions[0].updatedAt").value("2021-02-06T12:45:00"))
-        .andExpect(jsonPath("$.content[0].reviewDescriptions[0].rating").value(4))
-        .andExpect(jsonPath("$.content[0].reviewDescriptions[0].status").value("pending"))
-        .andExpect(jsonPath("$.pageable.pageNumber").value(0))
-        .andExpect(jsonPath("$.pageable.pageSize").value(20))
-        .andReturn();
-  }
+        // when
+        when(reviewRepository.findAll(PageRequest.of(0, 20))).thenReturn(reviews);
+        when(mapperFacade.map(review, ReviewDTO.class)).thenReturn(reviewDTO);
 
-  @Test
-  @WithMockUser
-  void createReviewWithReviewExists() throws Exception {
-    ReviewDescription reviewDescription = buildReviewDescription();
-    Review review = buildReview(reviewDescription);
+        // then
+        mockMvc
+                .perform(
+                        get(REVIEW_URL_GET_PAGINATION)
+                                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                                .param("page", "0")
+                                .param("size", "20"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.content.size()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(REVIEW_ID.toString()))
+                .andExpect(jsonPath("$.content[0].productId").value(PRODUCT_ID.toString()))
+                .andExpect(jsonPath("$.content[0].storeId").value(STORE_ID))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions.size()").value(1))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].id").value(REVIEW_DESCRIPTION_ID.toString()))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].reviewId").value(REVIEW_ID.toString()))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].title").value(TITLE))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].description").value(DESCRIPTION))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].customerId").value(CUSTOMER_ID.toString()))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].createdAt").value("2021-02-06T12:45:00"))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].updatedAt").value("2021-02-06T12:45:00"))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].rating").value(RATING))
+                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].status").value("pending"))
+                .andExpect(jsonPath("$.pageable.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageable.pageSize").value(20))
+                .andReturn();
+    }
 
-    when(reviewRepository.findByStoreIdAndProductId(4, 1221)).thenReturn(Optional.of(review));
-    when(reviewDescriptionRepository.save(reviewDescription)).thenReturn(reviewDescription);
-    when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+    @Test
+    void createReview() throws Exception {
+        // given
+        ReviewDescription reviewDescription = buildReviewDescription();
+        ReviewCreateDTO reviewCreateDTO = buildReviewCreateDTO();
+        ReviewDTO reviewDTO = buildReviewDTO();
+        Review review = buildReview();
 
-    mockMvc
-        .perform(
-            post("/api/v1/reviews")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(getStringFromResources("requests/create-review.json")))
-        .andExpect(status().isCreated())
-        .andExpect(header().exists("Location"))
-        .andExpect(header().string("Location", Matchers.containsString("/api/v1/reviews/1")));
-  }
+        // when
+        when(reviewRepository.findByStoreIdAndProductId(4, PRODUCT_ID)).thenReturn(Optional.of(review));
+        when(reviewDescriptionRepository.save(reviewDescription)).thenReturn(reviewDescription);
+        when(reviewRepository.findById(REVIEW_ID)).thenReturn(Optional.of(review));
+        when(mapperFacade.map(reviewCreateDTO, Review.class)).thenReturn(review);
+        when(reviewRepository.save(review)).thenReturn(review);
+        when(mapperFacade.map(review, ReviewDTO.class)).thenReturn(reviewDTO);
 
-  @Test
-  @WithMockUser
-  void deleteReview() throws Exception {
-    doNothing().when(reviewRepository).deleteById(1L);
-    doNothing().when(reviewDescriptionRepository).deleteAllByReviewId(1L);
+        // then
+        mockMvc
+                .perform(
+                        post(REVIEW_URL_POST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(getStringFromResources("requests/review/create-review.json")))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(header().string("Location", Matchers.containsString("/api/v1/review/" + REVIEW_ID)));
+    }
 
-    mockMvc
-        .perform(
-            delete("/api/v1/reviews/{reviewId}", 1)
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON))
-        .andExpect(status().is(204))
-        .andReturn();
+    @Test
+    void deleteReview() throws Exception {
+        // given
+        ReviewDescription reviewDescription = buildReviewDescription();
 
-    verify(reviewRepository).deleteById(1L);
-    verify(reviewDescriptionRepository).deleteAllByReviewId(1L);
-  }
+        // when
+        when(reviewDescriptionService.getAllReviewDescriptionsByReviewId(REVIEW_ID)).thenReturn(List.of(reviewDescription));
 
-  @Test
-  void updateReview() {}
+        mockMvc
+                .perform(
+                        delete(REVIEW_URL_DELETE, REVIEW_ID)
+                                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON))
+                .andExpect(status().is(204))
+                .andReturn();
 
-  private ReviewDescription buildReviewDescription() {
-    ReviewDescription reviewDescription = new ReviewDescription();
-    reviewDescription.setReviewId(1L);
-    reviewDescription.setTitle("Title");
-    reviewDescription.setDescription("Nice book");
-    reviewDescription.setCustomerId(1234);
-    reviewDescription.setRating(4);
-    reviewDescription.setCreatedAt(
-        LocalDateTime.of(LocalDate.of(2021, 2, 6), LocalTime.of(12, 45)));
-    reviewDescription.setUpdatedAt(
-        LocalDateTime.of(LocalDate.of(2021, 2, 6), LocalTime.of(12, 45)));
-    reviewDescription.setStatus(ReviewDescription.StatusEnum.pending);
-    return reviewDescription;
-  }
+        // then
+        verify(reviewRepository).deleteById(REVIEW_ID);
+        verify(reviewDescriptionService).deleteAllReviewDescriptionsById(List.of(REVIEW_DESCRIPTION_ID));
+    }
 
-  Review buildReview(ReviewDescription reviewDescription) {
-    Review review = new Review();
-    review.setReviewId(1L);
-    review.setProductId(9723);
-    review.setStoreId(3);
-    review.setReviewDescriptions(List.of(reviewDescription));
-    return review;
-  }
+    @Test
+    void updateReview() throws Exception {
+        // given
+        Review review = buildReview();
+        Review reviewPatched = buildReview();
+        reviewPatched.setStoreId(4);
+        reviewPatched.setProductId(UUID.fromString("225925f1-f16e-4572-9a3a-0c76182819d4"));
 
-  private static String getStringFromResources(String filename) throws IOException {
-    return IOUtils.toString(
-        Objects.requireNonNull(
-            ReviewControllerTest.class.getClassLoader().getResourceAsStream(filename)),
-        Charset.defaultCharset());
-  }
+        // when
+        when(reviewRepository.findById(REVIEW_ID)).thenReturn(Optional.ofNullable(review));
+
+        try (MockedStatic<PatchUtil> mockedPatchUtil = Mockito.mockStatic(PatchUtil.class)) {
+            mockedPatchUtil
+                    .when(() -> PatchUtil.applyPatch(any(JsonPatch.class), any(Review.class), eq(Review.class)))
+                    .thenReturn(reviewPatched);
+
+            mockMvc
+                    .perform(
+                            patch(REVIEW_URL_GET, REVIEW_ID)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(getStringFromResources("requests/review/patch-review.json")))
+                    .andExpect(status().isOk());
+
+            // then
+            verify(reviewRepository).save(reviewPatched);
+        }
+    }
 }

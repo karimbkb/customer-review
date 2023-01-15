@@ -1,6 +1,6 @@
 package com.karimbkb.customerreview.controllers;
 
-import com.karimbkb.customerreview.models.Review;
+import com.karimbkb.customerreview.domain.Review;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

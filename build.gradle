@@ -38,23 +38,19 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation 'org.projectlombok:lombok:1.18.20'
     def junitJupiterVersion = '5.4.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
-    implementation 'org.springframework.security:spring-security-oauth2-jose'
-    implementation 'org.springframework.security:spring-security-oauth2-resource-server'
-    implementation 'org.springframework.security:spring-security-test'
     implementation 'org.flywaydb:flyway-core'
-    implementation 'org.postgresql:postgresql:42.2.23'
+    implementation 'org.postgresql:postgresql:42.2.27'
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery:2.2.8.RELEASE'
     implementation 'p6spy:p6spy:3.9.1'
+    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.14.1'
     compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.h2database:h2'
-//    runtimeOnly 'mysql:mysql-connector-java'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
@@ -62,9 +58,16 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+    implementation "io.springfox:springfox-swagger2:3.0.0"
+    implementation "io.springfox:springfox-swagger-ui:3.0.0"
+    implementation "io.springfox:springfox-spring-webmvc:3.0.0"
+    implementation group: 'ma.glasnost.orika', name: 'orika-core', version: '1.5.4'
+    implementation group: 'com.github.java-json-tools', name: 'json-patch', version: '1.13'
     testImplementation "org.testcontainers:testcontainers:1.16.0"
     testImplementation "org.testcontainers:junit-jupiter:1.16.0"
     testImplementation "org.testcontainers:postgresql:1.16.0"
+    testImplementation group: 'org.mockito', name: 'mockito-inline', version: '4.10.0'
+    testImplementation group: 'io.rest-assured', name: 'spring-mock-mvc', version: '5.3.0'
 }
 
 test {

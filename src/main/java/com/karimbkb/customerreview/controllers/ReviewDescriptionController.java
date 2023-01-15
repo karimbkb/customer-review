@@ -1,61 +1,71 @@
 package com.karimbkb.customerreview.controllers;
 
-import com.karimbkb.customerreview.dto.ReviewDescriptionDto;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.karimbkb.customerreview.dto.ReviewDescriptionCreateDTO;
+import com.karimbkb.customerreview.dto.ReviewDescriptionDTO;
 import com.karimbkb.customerreview.exceptions.ReviewDescriptionNotFoundException;
-import com.karimbkb.customerreview.models.ReviewDescription;
-import com.karimbkb.customerreview.repositories.ReviewDescriptionRepository;
 import com.karimbkb.customerreview.service.ReviewDescriptionService;
+import io.swagger.annotations.ApiOperation;
+import javassist.NotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import ma.glasnost.orika.MapperFacade;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.validation.Valid;
 import java.net.URI;
+import java.util.UUID;
+
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("api/v1/reviewDescription")
 public class ReviewDescriptionController {
-  private final ReviewDescriptionRepository reviewDescriptionRepository;
-  private final ReviewDescriptionService reviewDescriptionService;
+    private final ReviewDescriptionService reviewDescriptionService;
+    private final MapperFacade mapperFacade;
 
-  @Autowired
-  public ReviewDescriptionController(ReviewDescriptionRepository reviewDescriptionRepository, ReviewDescriptionService reviewDescriptionService) {
-    this.reviewDescriptionRepository = reviewDescriptionRepository;
-    this.reviewDescriptionService = reviewDescriptionService;
-  }
+    @GetMapping
+    public ResponseEntity<Iterable<ReviewDescriptionDTO>> getReviewDescriptions(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        return ResponseEntity.ok(reviewDescriptionService.getAllReviewDescriptions(PageRequest.of(page, size)));
+    }
 
-  @GetMapping
-  public ResponseEntity<Iterable<ReviewDescription>> getReviewDescriptions() {
-    return ResponseEntity.ok(reviewDescriptionRepository.findAll());
-  }
+    @GetMapping("/{id}")
+    public ResponseEntity<ReviewDescriptionDTO> getReviewDescription(@PathVariable UUID id) {
+        return reviewDescriptionService
+                .loadReviewDescriptionById(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> ReviewDescriptionNotFoundException.withId(id));
+    }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<ReviewDescription> getReviewDescription(@PathVariable Long id) {
-    return reviewDescriptionRepository
-        .findById(id)
-        .map(ResponseEntity::ok)
-        .orElseThrow(() -> ReviewDescriptionNotFoundException.withId(id));
-  }
+    @PostMapping
+    public ResponseEntity<ReviewDescriptionDTO> createReviewDescription(@RequestBody ReviewDescriptionCreateDTO reviewDescriptionCreateDTO, UriComponentsBuilder uriBuilder) {
+        ReviewDescriptionDTO reviewDescription = reviewDescriptionService.createReviewDescription(reviewDescriptionCreateDTO);
+        URI location = uriBuilder.path("api/v1/reviewDescription/{id}").buildAndExpand(reviewDescription.getId()).toUri();
 
-  @PostMapping
-  public ResponseEntity<ReviewDescription> createReviewDescription(@RequestBody final ReviewDescriptionDto reviewDescriptionDto, UriComponentsBuilder uriBuilder) {
-    ReviewDescription reviewDescriptionResult = reviewDescriptionService.createReviewDescription(reviewDescriptionDto);
+        return ResponseEntity
+                .created(location)
+                .body(reviewDescription);
+    }
 
-    URI location = uriBuilder.path("/{id}").buildAndExpand(reviewDescriptionResult.getReviewId()).toUri();
-    return ResponseEntity.created(location).body(reviewDescriptionResult);
-  }
+    @ResponseStatus(NO_CONTENT)
+    @DeleteMapping("/{id}")
+    @ApiOperation(value = "Delete review description by given id")
+    public void deleteReviewDescription(@PathVariable UUID id) {
+        reviewDescriptionService.deleteReviewDescription(id);
+    }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<ReviewDescription> deleteReviewDescription(@PathVariable final Long id) {
-    reviewDescriptionRepository.deleteById(id);
-    return ResponseEntity.status(204).build();
-  }
-
-  @PutMapping("/{id}")
-  public ResponseEntity<ReviewDescription> updateReviewDescription(@RequestBody final ReviewDescriptionDto reviewDescriptionDto, @PathVariable final Long id) {
-    ReviewDescription reviewDescription = reviewDescriptionService.updateReviewDescription(reviewDescriptionDto, id);
-    return ResponseEntity.ok(reviewDescription);
-  }
+    @ResponseStatus(OK)
+    @PatchMapping("/{id}")
+    @ApiOperation(value = "Patch review description by given id")
+    public void updateReviewDescription(@PathVariable UUID id, @Valid @RequestBody JsonPatch patch) throws NotFoundException {
+        reviewDescriptionService.patchReviewDescription(id, patch);
+    }
 }

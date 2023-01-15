@@ -7,14 +7,14 @@ import java.util.regex.Pattern;
 
 class ReviewStatusValidator implements ConstraintValidator<ReviewStatus, String> {
 
-  @Override
-  public boolean isValid(String value, ConstraintValidatorContext context) {
-    Pattern pattern = Pattern.compile("^(pending|approved|rejected)$");
-    Matcher matcher = pattern.matcher(value);
-    try {
-      return matcher.matches();
-    } catch (Exception e) {
-      return false;
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        Pattern pattern = Pattern.compile("^(pending|approved|rejected)$");
+        Matcher matcher = pattern.matcher(value);
+        try {
+            return matcher.matches();
+        } catch (Exception e) {
+            return false;
+        }
     }
-  }
 }

@@ -1,0 +1,12 @@
+[
+  {
+    "op": "replace",
+    "path": "/storeId",
+    "value": 4
+  },
+  {
+    "op": "replace",
+    "path": "/productId",
+    "value": "225925f1-f16e-4572-9a3a-0c76182819d4"
+  }
+]

@@ -1,21 +1,17 @@
 package com.karimbkb.customerreview.service;
 
-import com.karimbkb.customerreview.models.Review;
-import lombok.NoArgsConstructor;
+import com.karimbkb.customerreview.domain.Review;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 
-@NoArgsConstructor
+@Component
 public class VerifyVersionReview {
 
-  @PrePersist
-  public void setVersion(Review review) {
-    review.setVersion(1);
-  }
-
-  @PreUpdate
-  protected void verifyVersionOnReview(Review review) {
-    review.setVersion(review.getVersion()+1);
-  }
+    @PrePersist
+    public void setVersionBeforeSave(Review review) {
+        if (review.getVersion() == null || review.getVersion() <= 0) {
+            review.setVersion(1);
+        }
+    }
 }

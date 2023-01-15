@@ -1,35 +1,27 @@
 package com.karimbkb.customerreview.service;
 
-import com.karimbkb.customerreview.models.ReviewDescription;
+import com.karimbkb.customerreview.domain.ReviewDescription;
 import com.karimbkb.customerreview.repositories.ReviewDescriptionRepository;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import javax.persistence.PreUpdate;
 import java.util.ConcurrentModificationException;
-import java.util.Optional;
 
-@NoArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class VerifyVersionReviewDescription {
 
-  ReviewDescriptionRepository reviewDescriptionRepository;
+    ReviewDescriptionRepository reviewDescriptionRepository;
 
-  @Autowired
-  public VerifyVersionReviewDescription(ReviewDescriptionRepository reviewDescriptionRepository) {
-    this.reviewDescriptionRepository = reviewDescriptionRepository;
-  }
-
-  @PreUpdate
-  protected void verifyVersionOnReviewDescription(ReviewDescription reviewDescription) {
-    Optional<ReviewDescription> reviewDescriptionResult =
-            reviewDescriptionRepository.findByReviewDescriptionId(reviewDescription.getReviewDescriptionId());
-
-    if (reviewDescriptionResult.isPresent()
-            && reviewDescription.getVersion() != reviewDescriptionResult.get().getVersion()) {
-      throw new ConcurrentModificationException(
-              "Review description with id "
-                      + reviewDescription.getReviewDescriptionId()
-                      + " can not be updated.");
+    @PreUpdate
+    protected void verifyVersionOnReviewDescription(ReviewDescription reviewDescription) {
+        reviewDescriptionRepository.findOneByReviewIdAndCustomerId(reviewDescription.getReviewId(), reviewDescription.getCustomerId())
+                .ifPresent(reviewDescriptionResult -> {
+                    if (reviewDescriptionResult.getVersion() >= reviewDescription.getVersion()) {
+                        throw new ConcurrentModificationException("Review description with id " + reviewDescription.getId() + " can not be updated. " +
+                                "Version is equal or greater than current version");
+                    }
+                });
     }
-  }
 }

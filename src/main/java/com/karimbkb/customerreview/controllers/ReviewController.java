@@ -11,6 +11,7 @@ import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +33,10 @@ public class ReviewController {
     private final ReviewControllerPatchValidator reviewControllerPatchValidator;
 
     @InitBinder
-    public void initBinderPatch(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(reviewControllerPatchValidator);
+    public void initBinder(WebDataBinder webDataBinder, HttpMethod httpMethod) {
+        if(httpMethod == HttpMethod.PATCH) {
+            webDataBinder.addValidators(reviewControllerPatchValidator);
+        }
     }
 
     @GetMapping

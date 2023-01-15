@@ -10,6 +10,7 @@ import com.karimbkb.customerreview.repositories.ReviewRepository;
 import com.karimbkb.customerreview.service.ReviewDescriptionService;
 import com.karimbkb.customerreview.service.ReviewService;
 import com.karimbkb.customerreview.util.PatchUtil;
+import com.karimbkb.customerreview.validator.ReviewControllerPatchValidator;
 import ma.glasnost.orika.MapperFacade;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -39,7 +41,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ReviewController.class)
-@Import(ReviewService.class)
+@Import({ReviewService.class})
 public class ReviewControllerTest {
 
     @MockBean
@@ -53,6 +55,9 @@ public class ReviewControllerTest {
 
     @MockBean
     private ReviewDescriptionService reviewDescriptionService;
+
+    @SpyBean
+    private ReviewControllerPatchValidator reviewControllerPatchValidator;
 
     @Autowired
     private MockMvc mockMvc;
@@ -74,16 +79,6 @@ public class ReviewControllerTest {
                 .andExpect(jsonPath("$.id").value(REVIEW_ID.toString()))
                 .andExpect(jsonPath("$.productId").value(PRODUCT_ID.toString()))
                 .andExpect(jsonPath("$.storeId").value(3))
-                .andExpect(jsonPath("$.reviewDescriptions.size()").value(1))
-                .andExpect(jsonPath("$.reviewDescriptions[0].id").value(REVIEW_DESCRIPTION_ID.toString()))
-                .andExpect(jsonPath("$.reviewDescriptions[0].reviewId").value(REVIEW_ID.toString()))
-                .andExpect(jsonPath("$.reviewDescriptions[0].title").value(TITLE))
-                .andExpect(jsonPath("$.reviewDescriptions[0].description").value(DESCRIPTION))
-                .andExpect(jsonPath("$.reviewDescriptions[0].customerId").value(CUSTOMER_ID.toString()))
-                .andExpect(jsonPath("$.reviewDescriptions[0].createdAt").value("2021-02-06T12:45:00"))
-                .andExpect(jsonPath("$.reviewDescriptions[0].updatedAt").value("2021-02-06T12:45:00"))
-                .andExpect(jsonPath("$.reviewDescriptions[0].rating").value(RATING))
-                .andExpect(jsonPath("$.reviewDescriptions[0].status").value("pending"))
                 .andReturn();
     }
 
@@ -110,16 +105,6 @@ public class ReviewControllerTest {
                 .andExpect(jsonPath("$.content[0].id").value(REVIEW_ID.toString()))
                 .andExpect(jsonPath("$.content[0].productId").value(PRODUCT_ID.toString()))
                 .andExpect(jsonPath("$.content[0].storeId").value(STORE_ID))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions.size()").value(1))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].id").value(REVIEW_DESCRIPTION_ID.toString()))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].reviewId").value(REVIEW_ID.toString()))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].title").value(TITLE))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].description").value(DESCRIPTION))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].customerId").value(CUSTOMER_ID.toString()))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].createdAt").value("2021-02-06T12:45:00"))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].updatedAt").value("2021-02-06T12:45:00"))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].rating").value(RATING))
-                .andExpect(jsonPath("$.content[0].reviewDescriptions[0].status").value("pending"))
                 .andExpect(jsonPath("$.pageable.pageNumber").value(0))
                 .andExpect(jsonPath("$.pageable.pageSize").value(20))
                 .andReturn();

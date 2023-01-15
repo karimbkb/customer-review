@@ -1,0 +1,37 @@
+#
+#  * GITHUB_TOKEN
+#  * CODECOV_TOKEN
+
+sudo: required
+language: java
+
+os: linux
+dist: trusty
+jdk: oraclejdk11
+
+services:
+  - docker
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+#addons:
+#  sonarcloud:
+#    organization: karimbkb
+#    token:
+#      secure: ""
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
+script:
+  - git clone https://github.com/karimbkb/customer-review.git
+  - cd customer-review
+  - ./gradlew build
+#  - ./gradlew sonarqube
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

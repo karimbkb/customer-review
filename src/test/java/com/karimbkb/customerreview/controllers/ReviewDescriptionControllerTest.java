@@ -79,6 +79,18 @@ public class ReviewDescriptionControllerTest {
     }
 
     @Test
+    void shouldNotGetReviewDescriptionWithException() throws Exception {
+        // when
+        when(reviewDescriptionRepository.findById(REVIEW_DESCRIPTION_ID)).thenReturn(Optional.empty());
+
+        // then
+        mockMvc
+                .perform(get(REVIEW_DESCRIPTION_URL_GET, REVIEW_DESCRIPTION_ID).header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON))
+                .andExpect(status().is(404))
+                .andReturn();
+    }
+
+    @Test
     void getReviewsWithPageAndSize() throws Exception {
         // given
         ReviewDescription reviewDescription = buildReviewDescription();

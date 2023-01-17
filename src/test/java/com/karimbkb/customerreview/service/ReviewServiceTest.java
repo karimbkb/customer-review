@@ -13,8 +13,12 @@ import javassist.NotFoundException;
 import ma.glasnost.orika.MapperFacade;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +33,7 @@ import java.util.UUID;
 import static com.karimbkb.customerreview.test.util.TestDataUtil.*;
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -65,6 +70,20 @@ class ReviewServiceTest {
         assertThat(reviewDTOResult.getId()).isEqualTo(REVIEW_ID);
         assertThat(reviewDTOResult.getProductId()).isEqualTo(PRODUCT_ID);
         assertThat(reviewDTOResult.getStoreId()).isEqualTo(STORE_ID);
+    }
+
+    @Test
+    void shouldNotCreateReviewAndThrowException() {
+        // given
+        Review review = buildReview();
+        ReviewCreateDTO reviewCreateDTO = buildReviewCreateDTO();
+
+        when(mapperFacade.map(reviewCreateDTO, Review.class)).thenReturn(review);
+        when(reviewRepository.save(review)).thenThrow(DataIntegrityViolationException.class);
+
+        // when + then
+        assertThatThrownBy(() -> reviewService.createReview(reviewCreateDTO))
+                .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test

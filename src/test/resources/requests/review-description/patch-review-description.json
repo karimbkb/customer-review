@@ -1,12 +1,17 @@
 [
   {
     "op": "replace",
-    "path": "/customerId",
-    "value": "c3d49655-063c-40c8-9dc3-d75fbb3c75db"
+    "path": "/title",
+    "value": "A better title"
   },
   {
     "op": "replace",
-    "path": "/firstName",
-    "value": "Max"
+    "path": "/description",
+    "value": "A better description for this product."
+  },
+  {
+    "op": "replace",
+    "path": "/version",
+    "value": 2
   }
 ]

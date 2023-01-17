@@ -40,7 +40,7 @@ public class ReviewDescriptionController {
     @GetMapping("/{id}")
     public ResponseEntity<ReviewDescriptionDTO> getReviewDescription(@PathVariable UUID id) {
         return reviewDescriptionService
-                .loadReviewDescriptionById(id)
+                .getReviewDescriptionById(id)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> ReviewDescriptionNotFoundException.withId(id));
     }

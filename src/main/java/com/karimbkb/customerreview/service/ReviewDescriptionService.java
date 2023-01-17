@@ -2,6 +2,7 @@ package com.karimbkb.customerreview.service;
 
 import com.github.fge.jsonpatch.JsonPatch;
 import com.karimbkb.customerreview.domain.ReviewDescription;
+import com.karimbkb.customerreview.domain.ReviewDescription.StatusEnum;
 import com.karimbkb.customerreview.dto.ReviewDescriptionCreateDTO;
 import com.karimbkb.customerreview.dto.ReviewDescriptionDTO;
 import com.karimbkb.customerreview.exceptions.InputValidationException;
@@ -39,7 +40,7 @@ public class ReviewDescriptionService {
                     .map(dto -> mapperFacade.map(dto, ReviewDescription.class))
                     .map(reviewDescription -> {
                         if(reviewDescription.getStatus() == null) {
-                            reviewDescription.setStatus(ReviewDescription.StatusEnum.pending);
+                            reviewDescription.setStatus(StatusEnum.pending);
                         }
                         return reviewDescription;
                     })
@@ -75,17 +76,17 @@ public class ReviewDescriptionService {
         log.debug("ReviewDescription with id [{}] was deleted", id);
     }
 
-    public List<ReviewDescription> getAllReviewDescriptionsByReviewId(@NonNull UUID reviewId) {
-        log.debug("Get all review descriptions by review id [{}]", reviewId);
-        return reviewDescriptionRepository.findAllByReviewId(reviewId);
-    }
-
     public void deleteAllReviewDescriptionsById(@NonNull Collection<UUID> reviewDescriptionIds) {
         log.debug("Delete all review descriptions with ids [{}]", reviewDescriptionIds);
         reviewDescriptionRepository.deleteAllByIdInBatch(reviewDescriptionIds);
     }
 
-    public Optional<ReviewDescriptionDTO> loadReviewDescriptionById(UUID id) {
+    public List<ReviewDescription> getAllReviewDescriptionsByReviewId(@NonNull UUID reviewId) {
+        log.debug("Get all review descriptions by review id [{}]", reviewId);
+        return reviewDescriptionRepository.findAllByReviewId(reviewId);
+    }
+
+    public Optional<ReviewDescriptionDTO> getReviewDescriptionById(UUID id) {
         return reviewDescriptionRepository.findById(id)
                 .map(reviewDescription -> mapperFacade.map(reviewDescription, ReviewDescriptionDTO.class));
     }
